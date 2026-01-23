@@ -1,16 +1,91 @@
-# React + Vite
+# EcoTrack - Carbon Footprint Tracker
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+A simple React application for tracking and monitoring carbon footprint from daily activities.
 
-Currently, two official plugins are available:
+## Features
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) (or [oxc](https://oxc.rs) when used in [rolldown-vite](https://vite.dev/guide/rolldown)) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+- **Dashboard**: View total carbon footprint and activity breakdown
+- **Activity Logging**: Track carbon emissions from various activities
+- **Real-time Calculations**: Automatic calculation of total carbon footprint
 
-## React Compiler
+## Tech Stack
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+- **Frontend**: React 19.2.0
+- **Build Tool**: Vite 7.2.4
+- **Styling**: CSS
+- **Linting**: ESLint
 
-## Expanding the ESLint configuration
+## Getting Started
 
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.
+### Prerequisites
+
+- Node.js (version 16 or higher)
+- npm or yarn
+
+### Installation
+
+1. Clone the repository
+```bash
+git clone <repository-url>
+cd Experiment-1_EcoTrack/Program\ Code
+```
+
+2. Install dependencies
+```bash
+npm install
+```
+
+3. Start the development server
+```bash
+npm run dev
+```
+
+4. Open your browser and navigate to `http://localhost:5173`
+
+## Available Scripts
+
+- `npm run dev` - Start development server
+- `npm run build` - Build for production
+- `npm run preview` - Preview production build
+- `npm run lint` - Run ESLint
+
+## Project Structure
+
+```
+src/
+├── components/
+│   └── Header.jsx
+├── pages/
+│   ├── Dashboard.jsx
+│   └── Logs.jsx
+├── data/
+│   └── logs.js
+├── assets/
+└── App.jsx
+```
+
+## Usage
+
+The application displays:
+- Total carbon footprint in kilograms
+- List of activities with their respective carbon emissions
+- Activity logs for detailed tracking
+
+## Sample Data
+
+The app comes with sample activities:
+- Car Travel: 28 KG CO₂
+- Electricity Usage: 12 KG CO₂  
+- Cycling: 0 KG CO₂
+
+## Contributing
+
+1. Fork the repository
+2. Create a feature branch
+3. Make your changes
+4. Run linting: `npm run lint`
+5. Submit a pull request
+
+## License
+
+This project is private and not licensed for public use.
