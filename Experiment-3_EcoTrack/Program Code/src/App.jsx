@@ -1,10 +1,10 @@
+import { BrowserRouter, Routes, Route } from "react-router-dom";
 import DashboardAnalytics from "./pages/DashboardAnalytics";
 import Logs from "./pages/Logs";
+import Login from "./pages/login";
 import DashboardLayout from "./pages/DashboardLayout";
 import DashboardSummary from "./pages/DashboardSummary";
 import ProtectedRoute from "./routes/ProtectedRoute.jsx";
-import { BrowserRouter, Routes, Route } from "react-router-dom";
-import Login from "./pages/login";
 import Header from "./components/Header";
 
 function App() {

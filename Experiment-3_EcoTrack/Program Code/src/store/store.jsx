@@ -1,9 +1,9 @@
 import { configureStore } from '@reduxjs/toolkit';
-import LogsReducer from './logSlice';
+import logsReducer from "./logSlice"
 
 const store = configureStore({
     reducer: {
-        logs: LogsReducer,
+        logs: logsReducer,
     }, 
 });
 export default store;

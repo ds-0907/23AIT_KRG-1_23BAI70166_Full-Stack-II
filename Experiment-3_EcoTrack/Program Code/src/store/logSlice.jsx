@@ -1,4 +1,4 @@
-import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
+import {createSlice, createAsyncThunk} from "@reduxjs/toolkit";
 import logs from '../data/logs';
 
 export const fetchLogs = createAsyncThunk(
@@ -16,12 +16,7 @@ const logSlice = createSlice({
         status: "idle",
         error: null,
     }, 
-    reducers: {
-        refreshLogs: (state) => {
-            state.status = "loading";
-            state.error = null;
-        }
-    }, 
+    reducers: {}, 
     extraReducers:(builder) => {
         builder
         .addCase(fetchLogs.pending, (state) => {
@@ -35,6 +30,4 @@ const logSlice = createSlice({
         })
     }
 })
-
-export const { refreshLogs } = logSlice.actions;
 export default logSlice.reducer;

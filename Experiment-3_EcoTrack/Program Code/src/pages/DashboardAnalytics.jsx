@@ -1,11 +1,10 @@
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 import { useSelector, useDispatch } from "react-redux";
-import { fetchLogs, refreshLogs } from "../store/logSlice";
+import { fetchLogs } from "../store/logSlice";
 
 const DashboardAnalytics = () => {
   const dispatch = useDispatch();
   const { data: logs, status, error } = useSelector((state) => state.logs);
-  const [isInitialLoad, setIsInitialLoad] = useState(true);
 
   useEffect(() => {
     const loadData = async () => {
@@ -13,18 +12,16 @@ const DashboardAnalytics = () => {
         dispatch(fetchLogs());
       } else {
         await new Promise(resolve => setTimeout(resolve, 1000));
-        setIsInitialLoad(false);
       }
     };
     loadData();
   }, [status, dispatch]);
 
   const handleRefresh = () => {
-    dispatch(refreshLogs());
     dispatch(fetchLogs());
   };
 
-  if (status === "loading" || isInitialLoad) {
+  if (status === "loading") {
     return <div>Loading analytics...</div>;
   }
 

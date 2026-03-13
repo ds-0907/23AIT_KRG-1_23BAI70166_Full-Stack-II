@@ -1,30 +1,22 @@
 import { useEffect, useState } from "react";
 import { useSelector, useDispatch } from "react-redux";
-import { fetchLogs, refreshLogs } from "../store/logSlice";
+import { fetchLogs } from "../store/logSlice";
 
 const DashboardSummary = () => {
   const dispatch = useDispatch();
   const { data: logs, status, error } = useSelector((state) => state.logs);
-  const [isInitialLoad, setIsInitialLoad] = useState(true);
 
   useEffect(() => {
-    const loadData = async () => {
-      if (status === "idle") {
-        dispatch(fetchLogs());
-      } else {
-        await new Promise(resolve => setTimeout(resolve, 1000));
-        setIsInitialLoad(false);
-      }
-    };
-    loadData();
+    if (status === "idle") {
+      dispatch(fetchLogs());
+    }
   }, [status, dispatch]);
 
   const handleRefresh = () => {
-    dispatch(refreshLogs());
     dispatch(fetchLogs());
   };
 
-  if (status === "loading" || isInitialLoad) {
+  if (status === "loading") {
     return <div>Loading summary...</div>;
   }
 

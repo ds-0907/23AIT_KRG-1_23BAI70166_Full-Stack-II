@@ -1,25 +1,22 @@
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 import { useSelector, useDispatch } from "react-redux";
 import { fetchLogs } from "../store/logSlice";
 
 const Logs = () => {
   const dispatch = useDispatch();
   const { data: logs, status, error } = useSelector((state) => state.logs);
-  const [isInitialLoad, setIsInitialLoad] = useState(true);
+  
+  const handleRefresh = () => {
+    dispatch(fetchLogs());
+  }
 
   useEffect(() => {
-    const loadData = async () => {
-      if (status === "idle") {
-        dispatch(fetchLogs());
-      } else {
-        await new Promise(resolve => setTimeout(resolve, 1000));
-        setIsInitialLoad(false);
-      }
-    };
-    loadData();
+    if (status === "idle") {
+      dispatch(fetchLogs());
+    }
   }, [status, dispatch]);
 
-  if (status === "loading" || isInitialLoad) {
+  if (status === "loading") {
     return <div>Loading logs...</div>;
   }
 
@@ -44,6 +41,8 @@ const Logs = () => {
           {log.activity} = {log.carbon} Kg
         </div>
       ))}
+      <br />
+      <button onClick={handleRefresh}>Refresh Logs</button>
     </div>
   );
 };
