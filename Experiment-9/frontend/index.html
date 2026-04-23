@@ -1,0 +1,249 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Secure Full Stack – React Frontend</title>
+    <script src="https://unpkg.com/react@18/umd/react.development.js" crossorigin></script>
+    <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js" crossorigin></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: #0f172a; color: #e2e8f0; }
+        .container { max-width: 960px; margin: 0 auto; padding: 2rem; }
+        h1 { text-align: center; font-size: 2rem; background: linear-gradient(135deg, #6366f1, #8b5cf6); -webkit-background-clip: text; -webkit-text-fill-color: transparent; margin-bottom: 1.5rem; }
+        .tabs { display: flex; gap: 0.5rem; margin-bottom: 1.5rem; justify-content: center; }
+        .tab { padding: 0.6rem 1.4rem; border: none; border-radius: 8px; cursor: pointer; font-size: 0.9rem; font-weight: 600; background: #1e293b; color: #94a3b8; transition: all 0.2s; }
+        .tab.active { background: #6366f1; color: #fff; }
+        .card { background: #1e293b; border-radius: 12px; padding: 1.5rem; margin-bottom: 1rem; border: 1px solid #334155; }
+        input, select { width: 100%; padding: 0.7rem; margin-bottom: 0.8rem; border-radius: 8px; border: 1px solid #475569; background: #0f172a; color: #e2e8f0; font-size: 0.9rem; }
+        .btn { padding: 0.7rem 1.5rem; border: none; border-radius: 8px; cursor: pointer; font-weight: 600; font-size: 0.9rem; transition: all 0.2s; }
+        .btn-primary { background: #6366f1; color: #fff; }
+        .btn-primary:hover { background: #4f46e5; }
+        .btn-google { background: #ea4335; color: #fff; width: 100%; margin-top: 0.5rem; }
+        .btn-danger { background: #ef4444; color: #fff; }
+        .btn-sm { padding: 0.4rem 0.8rem; font-size: 0.8rem; }
+        .msg { padding: 0.8rem; border-radius: 8px; margin-bottom: 1rem; font-size: 0.85rem; }
+        .msg-ok { background: #064e3b; color: #6ee7b7; border: 1px solid #065f46; }
+        .msg-err { background: #7f1d1d; color: #fca5a5; border: 1px solid #991b1b; }
+        .badge { display: inline-block; padding: 0.2rem 0.6rem; border-radius: 6px; font-size: 0.75rem; font-weight: 600; margin-right: 0.3rem; }
+        .badge-admin { background: #7c3aed; color: #fff; }
+        .badge-mod { background: #2563eb; color: #fff; }
+        .badge-user { background: #059669; color: #fff; }
+        table { width: 100%; border-collapse: collapse; }
+        th, td { padding: 0.7rem; text-align: left; border-bottom: 1px solid #334155; font-size: 0.85rem; }
+        th { color: #94a3b8; font-weight: 600; }
+        .nav-bar { display: flex; justify-content: space-between; align-items: center; padding: 1rem 2rem; background: #1e293b; border-bottom: 1px solid #334155; }
+        .nav-user { display: flex; align-items: center; gap: 1rem; }
+        .flex-row { display: flex; gap: 0.5rem; }
+    </style>
+</head>
+<body>
+    <div id="root"></div>
+    <script type="text/babel">
+        const API = "http://localhost:8080";
+
+        function App() {
+            const [token, setToken] = React.useState(localStorage.getItem("token") || "");
+            const [user, setUser] = React.useState(JSON.parse(localStorage.getItem("user") || "null"));
+            const [view, setView] = React.useState(token ? "dashboard" : "login");
+            const [msg, setMsg] = React.useState(null);
+
+            const headers = { "Content-Type": "application/json", Authorization: `Bearer ${token}` };
+
+            const showMsg = (text, ok) => { setMsg({ text, ok }); setTimeout(() => setMsg(null), 4000); };
+
+            const logout = () => { localStorage.clear(); setToken(""); setUser(null); setView("login"); };
+
+            const onLogin = (t, u) => {
+                localStorage.setItem("token", t);
+                localStorage.setItem("user", JSON.stringify(u));
+                setToken(t); setUser(u); setView("dashboard");
+            };
+
+            return (
+                <div>
+                    {user && (
+                        <div className="nav-bar">
+                            <h2 style={{fontSize:"1.1rem"}}>🔐 Secure Full Stack</h2>
+                            <div className="nav-user">
+                                <span>{user.username}</span>
+                                {user.roles.map(r => <span key={r} className={`badge badge-${r.includes("ADMIN")?"admin":r.includes("MOD")?"mod":"user"}`}>{r.replace("ROLE_","")}</span>)}
+                                <button className="btn btn-danger btn-sm" onClick={logout}>Logout</button>
+                            </div>
+                        </div>
+                    )}
+                    <div className="container">
+                        {msg && <div className={`msg ${msg.ok ? "msg-ok" : "msg-err"}`}>{msg.text}</div>}
+                        {!user && view === "login" && <LoginForm onLogin={onLogin} showMsg={showMsg} setView={setView} />}
+                        {!user && view === "signup" && <SignupForm showMsg={showMsg} setView={setView} />}
+                        {user && view === "dashboard" && <Dashboard headers={headers} user={user} showMsg={showMsg} />}
+                    </div>
+                </div>
+            );
+        }
+
+        function LoginForm({ onLogin, showMsg, setView }) {
+            const [username, setUsername] = React.useState("");
+            const [password, setPassword] = React.useState("");
+            const submit = async (e) => {
+                e.preventDefault();
+                try {
+                    const res = await fetch(`${API}/api/auth/signin`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ username, password }) });
+                    if (!res.ok) throw new Error("Invalid credentials");
+                    const data = await res.json();
+                    showMsg("Login successful!", true);
+                    onLogin(data.token, data);
+                } catch (err) { showMsg(err.message, false); }
+            };
+            return (
+                <div className="card" style={{maxWidth:420,margin:"3rem auto"}}>
+                    <h1>Sign In</h1>
+                    <form onSubmit={submit}>
+                        <input placeholder="Username" value={username} onChange={e=>setUsername(e.target.value)} required />
+                        <input placeholder="Password" type="password" value={password} onChange={e=>setPassword(e.target.value)} required />
+                        <button className="btn btn-primary" style={{width:"100%"}}>Sign In</button>
+                        <button type="button" className="btn btn-google" onClick={()=>window.location.href=`${API}/oauth2/authorization/google`}>🔵 Sign in with Google</button>
+                    </form>
+                    <p style={{textAlign:"center",marginTop:"1rem",fontSize:"0.85rem",color:"#94a3b8"}}>
+                        No account? <span style={{color:"#818cf8",cursor:"pointer"}} onClick={()=>setView("signup")}>Sign Up</span>
+                    </p>
+                </div>
+            );
+        }
+
+        function SignupForm({ showMsg, setView }) {
+            const [form, setForm] = React.useState({ username:"", email:"", password:"", roles:[] });
+            const update = (k,v) => setForm(p=>({...p,[k]:v}));
+            const submit = async (e) => {
+                e.preventDefault();
+                try {
+                    const body = { ...form, roles: form.roles.length ? form.roles : undefined };
+                    const res = await fetch(`${API}/api/auth/signup`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) });
+                    const data = await res.json();
+                    if (!res.ok) throw new Error(data.message);
+                    showMsg(data.message, true); setView("login");
+                } catch (err) { showMsg(err.message, false); }
+            };
+            return (
+                <div className="card" style={{maxWidth:420,margin:"3rem auto"}}>
+                    <h1>Sign Up</h1>
+                    <form onSubmit={submit}>
+                        <input placeholder="Username" value={form.username} onChange={e=>update("username",e.target.value)} required />
+                        <input placeholder="Email" type="email" value={form.email} onChange={e=>update("email",e.target.value)} required />
+                        <input placeholder="Password (min 6 chars)" type="password" value={form.password} onChange={e=>update("password",e.target.value)} required />
+                        <select value={form.roles[0]||""} onChange={e=>update("roles",e.target.value?[e.target.value]:[])}>
+                            <option value="">Default (User)</option>
+                            <option value="user">User</option>
+                            <option value="mod">Moderator</option>
+                            <option value="admin">Admin</option>
+                        </select>
+                        <button className="btn btn-primary" style={{width:"100%"}}>Register</button>
+                    </form>
+                    <p style={{textAlign:"center",marginTop:"1rem",fontSize:"0.85rem",color:"#94a3b8"}}>
+                        Have an account? <span style={{color:"#818cf8",cursor:"pointer"}} onClick={()=>setView("login")}>Sign In</span>
+                    </p>
+                </div>
+            );
+        }
+
+        function Dashboard({ headers, user, showMsg }) {
+            const [tab, setTab] = React.useState("products");
+            const [products, setProducts] = React.useState([]);
+            const [rbacResult, setRbacResult] = React.useState(null);
+
+            const loadProducts = async () => {
+                try {
+                    const res = await fetch(`${API}/api/products?page=0&size=20`, { headers });
+                    if (!res.ok) throw new Error("Unauthorized");
+                    const data = await res.json();
+                    setProducts(data.content || []);
+                } catch (err) { showMsg("Failed to load products: " + err.message, false); }
+            };
+
+            React.useEffect(() => { if (tab === "products") loadProducts(); }, [tab]);
+
+            const testRbac = async (endpoint) => {
+                try {
+                    const res = await fetch(`${API}${endpoint}`, { headers });
+                    const data = await res.json();
+                    setRbacResult({ endpoint, status: res.status, data });
+                } catch (err) { setRbacResult({ endpoint, status: "error", data: err.message }); }
+            };
+
+            const isAdmin = user.roles.some(r => r.includes("ADMIN"));
+
+            return (
+                <div>
+                    <h1>Dashboard</h1>
+                    <div className="tabs">
+                        <button className={`tab ${tab==="products"?"active":""}`} onClick={()=>setTab("products")}>📦 Products</button>
+                        <button className={`tab ${tab==="rbac"?"active":""}`} onClick={()=>setTab("rbac")}>🛡️ RBAC Test</button>
+                        <button className={`tab ${tab==="health"?"active":""}`} onClick={()=>setTab("health")}>💚 Health</button>
+                    </div>
+
+                    {tab === "products" && (
+                        <div className="card">
+                            <h2 style={{marginBottom:"1rem",fontSize:"1.1rem"}}>Product Catalog (JPA Paginated)</h2>
+                            <table>
+                                <thead><tr><th>ID</th><th>Name</th><th>Category</th><th>Price</th><th>Stock</th>{isAdmin&&<th>Action</th>}</tr></thead>
+                                <tbody>
+                                    {products.map(p => (
+                                        <tr key={p.id}>
+                                            <td>{p.id}</td><td>{p.name}</td><td>{p.category}</td>
+                                            <td>${p.price}</td><td>{p.stockQuantity}</td>
+                                            {isAdmin && <td><button className="btn btn-danger btn-sm" onClick={async()=>{await fetch(`${API}/api/products/${p.id}`,{method:"DELETE",headers});showMsg("Deleted",true);loadProducts();}}>Delete</button></td>}
+                                        </tr>
+                                    ))}
+                                </tbody>
+                            </table>
+                            {products.length === 0 && <p style={{textAlign:"center",padding:"1rem",color:"#64748b"}}>No products found.</p>}
+                        </div>
+                    )}
+
+                    {tab === "rbac" && (
+                        <div className="card">
+                            <h2 style={{marginBottom:"1rem",fontSize:"1.1rem"}}>RBAC Endpoint Tester</h2>
+                            <div className="flex-row" style={{flexWrap:"wrap",marginBottom:"1rem"}}>
+                                <button className="btn btn-primary btn-sm" onClick={()=>testRbac("/api/user/dashboard")}>User Endpoint</button>
+                                <button className="btn btn-primary btn-sm" onClick={()=>testRbac("/api/moderator/panel")}>Moderator Endpoint</button>
+                                <button className="btn btn-primary btn-sm" onClick={()=>testRbac("/api/admin/console")}>Admin Endpoint</button>
+                                <button className="btn btn-primary btn-sm" onClick={()=>testRbac("/api/public/health")}>Public Health</button>
+                            </div>
+                            {rbacResult && (
+                                <div style={{background:"#0f172a",padding:"1rem",borderRadius:"8px",fontSize:"0.85rem"}}>
+                                    <p><strong>Endpoint:</strong> {rbacResult.endpoint}</p>
+                                    <p><strong>Status:</strong> {rbacResult.status}</p>
+                                    <pre style={{marginTop:"0.5rem",color:"#a5b4fc",whiteSpace:"pre-wrap"}}>{JSON.stringify(rbacResult.data, null, 2)}</pre>
+                                </div>
+                            )}
+                        </div>
+                    )}
+
+                    {tab === "health" && <HealthCheck headers={headers} />}
+                </div>
+            );
+        }
+
+        function HealthCheck({ headers }) {
+            const [health, setHealth] = React.useState(null);
+            React.useEffect(() => {
+                fetch(`${API}/api/public/health`).then(r=>r.json()).then(setHealth).catch(()=>setHealth({status:"DOWN"}));
+            }, []);
+            return (
+                <div className="card">
+                    <h2 style={{marginBottom:"1rem",fontSize:"1.1rem"}}>System Health</h2>
+                    {health ? (
+                        <div style={{textAlign:"center",padding:"2rem"}}>
+                            <div style={{fontSize:"3rem"}}>{health.status==="UP"?"✅":"❌"}</div>
+                            <p style={{fontSize:"1.2rem",marginTop:"0.5rem"}}>{health.message || health.status}</p>
+                        </div>
+                    ) : <p>Loading...</p>}
+                </div>
+            );
+        }
+
+        ReactDOM.createRoot(document.getElementById("root")).render(<App />);
+    </script>
+</body>
+</html>
